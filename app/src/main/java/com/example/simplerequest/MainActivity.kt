@@ -6,35 +6,26 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.View
+import android.view.View.OnFocusChangeListener
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.google.android.material.snackbar.Snackbar
 import com.example.simplerequest.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     // Request routine
     private fun requestRoutine() {
-        // Hide the keyboard
-        this.currentFocus?.let { view ->
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.hideSoftInputFromWindow(view.windowToken, 0)
-        }
-
-        // Get the URL
         var url = binding.urlBarInput.text.toString()
-
-        // Early bailout
         if (url.isEmpty()) return
 
-        // Clear the response view
-        binding.responseView.text = ""
+        hideKeyboard()
 
-        // Show the progress bar
+        binding.responseView.text = ""
         binding.progressBar.visibility = View.VISIBLE
 
         // Prepend with the protocol, if necessary
@@ -69,6 +60,15 @@ class MainActivity : AppCompatActivity() {
         // Add the request to the RequestQueue
         queue.add(stringRequest)
     }
+
+    // Hide the keyboard
+    private fun hideKeyboard() {
+        this.currentFocus?.let { view ->
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.hideSoftInputFromWindow(view.windowToken, 0)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -88,6 +88,11 @@ class MainActivity : AppCompatActivity() {
                 // Stub
             }
         })
+
+        // Hide the keyboard when the input bar loses focus
+        binding.responseView.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) hideKeyboard()
+        }
 
         // Request with the enter keyboard button
         binding.urlBarInput.setOnKeyListener { _, keyCode, keyEvent ->
