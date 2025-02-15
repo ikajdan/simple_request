@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-24.04'
+
+    env:
+      JAVA_DISTRIBUTION: 'temurin'
+      JAVA_VERSION: '21'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Run Lint
+        run: ./gradlew --no-daemon lintDebug
+
+      - name: Build App
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: |
+            app/build/outputs/
+            app/build/reports/
